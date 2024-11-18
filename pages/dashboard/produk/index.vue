@@ -20,8 +20,8 @@
       <div v-for="product in products" :key="product.id" class="flex">
         <UCard class="flex flex-col" :ui="{ header: { base: 'flex-grow flex items-center' } }">
           <template #header>
-            <NuxtImg v-if="product.fotoUrl" :src="product.fotoUrl" width="300" />
-            <NuxtImg v-else src="img/img-placeholder.png" width="300" />
+            <NuxtImg v-if="product.fotoUrl" :src="product.fotoUrl" width="300" height="300" />
+            <NuxtImg v-else src="img/img-placeholder.png" width="300" height="300" />
           </template>
           <div class="text-center font-bold text-lg">{{ product.nama }}</div>
           <div v-if="product.kelompok" class="text-center text-gray-500 text-sm">{{ product.kelompok.nama }} / {{
@@ -38,7 +38,7 @@
       </div>
     </div>
 
-    <UModal v-model="editModal" prevent-close>
+    <UModal v-model="editModal">
       <UCard>
         <template #header>
           <UButton icon="i-heroicons-x-mark" size="xl" :padded="false" color="black" square variant="ghost"
@@ -68,6 +68,13 @@
             <UInput type="file" accept="image/*" @change="photoPicked" />
           </UFormGroup>
           <div class="flex justify-center">
+            <div class="relative" v-if="newPhotoImage || oldPhotoImageUrl">
+              <NuxtImg v-if="newPhotoImage" :src="newPhotoImage" width="100" height="100" />
+              <NuxtImg v-else-if="oldPhotoImageUrl" :src="oldPhotoImageUrl" width="100" height="100" />
+              <UButton icon="i-heroicons-x-mark-20-solid" color="red" :padded="false" class="absolute -top-2 -end-2" @click="removePhotoImage" />
+            </div>
+          </div>
+          <div class="flex justify-center">
             <UButton :loading="editLoading" class="w-fit px-12" color="yellow" type="submit">Edit</UButton>
           </div>
           <div v-if="editError" class="text-red-500 text-center">{{ editError }}</div>
@@ -75,7 +82,7 @@
       </UCard>
     </UModal>
 
-    <UModal v-model="deleteModal" prevent-close>
+    <UModal v-model="deleteModal">
       <UCard>
         <template #header>
           <div class="font-semibold">Apakah Anda Yakin Ingin Menghapus Produk Ini?</div>
@@ -84,7 +91,7 @@
           <p>Nama Produk: {{ selectedItem.nama }}</p>
           <p v-if="selectedItem.kelompok">Kelompok: {{ selectedItem.kelompok.nama }} / {{
             selectedItem.kelompok.kelas.nama
-            }}</p>
+          }}</p>
         </div>
         <template #footer>
           <div class="flex gap-2">
@@ -171,6 +178,8 @@ const state = reactive({
   foto: '',
 })
 const photoImage = ref(null)
+const oldPhotoImageUrl = ref('')
+const newPhotoImage = ref(null)
 
 const validate = (state) => {
   const errors = []
@@ -195,14 +204,23 @@ async function photoPicked(event) {
   photoImage.value = file
   const group = await getGroup()
   state.foto = `${group.kelas.nama}/${group.nama}/${file.name}`
+  let fr = new FileReader()
+  fr.readAsDataURL(file)
+  fr.onload = () => newPhotoImage.value = fr.result
+}
+
+const removePhotoImage = () => {
+  state.foto = ''
+  newPhotoImage.value = null
+  oldPhotoImageUrl.value = ''
 }
 
 async function groupPicked() {
   const group = await getGroup()
-  if (group) state.foto = state.foto.replace(/\/[^\/]+\//, `/${group.nama}/`)
+  if (group && state.foto) state.foto = state.foto.replace(/\/[^\/]+\//, `/${group.nama}/`)
 }
 
-const closeModal = () => {
+const resetState = () => {
   selectedId.value = null
   state.kelompok = null
   state.nama = ''
@@ -221,16 +239,14 @@ const openEditModal = (productId) => {
     state.jumlah = selectedItem.value.banyak
     state.harga = selectedItem.value.harga
     state.foto = selectedItem.value.foto
+    oldPhotoImageUrl.value = selectedItem.value.fotoUrl
   }
   editModal.value = true
 }
-const closeEditModal = () => {
-  closeModal()
-  editModal.value = false
-}
+const closeEditModal = () => editModal.value = false
 
 async function getProductPhoto(productId) {
-  const { data, error } = await supabase.from('produk').select('foto').eq('id', productId)
+  const { data, error } = await supabase.from('produk').select('foto').eq('id', productId).maybeSingle()
   if (error) throw error
   return data
 }
@@ -241,13 +257,17 @@ const editProduct = async (productId) => {
   try {
     editLoading.value = true
     if (photoImage.value) {
-      const { data: url } = await getProductPhoto(productId)
-      if (url) {
-        const { error } = await supabase.storage.from('produk').update(url, photoImage.value)
+      const { foto } = await getProductPhoto(productId)
+      if (foto) {
+        const { error } = await supabase.storage.from('produk').update(foto, photoImage.value)
         if (error) throw error
       } else {
-        const { error } = await supabase.storage.from('produk').upload(url, photoImage.value)
+        const { error } = await supabase.storage.from('produk').upload(state.foto, photoImage.value)
         if (error) throw error
+        if (selectedItem.value.foto) {
+          const { error } = await supabase.storage.from('produk').remove(selectedItem.value.foto)
+          if (error) throw error
+        }
       }
     }
     const { error } = await supabase.from('produk').update({
@@ -262,13 +282,11 @@ const editProduct = async (productId) => {
     closeEditModal()
     refresh()
   } catch (error) {
-    console.error(error.message)
-    if (error instanceof TypeError) {
-      editError.value = 'File already exists'
-      setTimeout(() => {
-        editError.value = ''
-      }, 3000)
-    }
+    console.error(error)
+    editError.value = error.message
+    setTimeout(() => {
+      editError.value = ''
+    }, 3000)
   } finally {
     editLoading.value = false
   }
@@ -279,10 +297,7 @@ const openDeleteModal = (productId) => {
   selectedId.value = productId
   deleteModal.value = true
 }
-const closeDeleteModal = () => {
-  closeModal()
-  deleteModal.value = false
-}
+const closeDeleteModal = () => deleteModal.value = false
 
 const deleteLoading = ref(false)
 const deleteProduct = async (productId) => {
@@ -303,6 +318,10 @@ const deleteProduct = async (productId) => {
     deleteLoading.value = false
   }
 }
+
+watch([editModal, deleteModal], ([newEditModal, newDeleteModal], [oldEditModal, oldDeleteModal]) => {
+  if ((oldEditModal && !newEditModal) || (oldDeleteModal && !newDeleteModal)) resetState()
+})
 </script>
 
 <style scoped></style>

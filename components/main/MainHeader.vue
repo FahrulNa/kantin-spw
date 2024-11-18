@@ -7,14 +7,15 @@
           <div class="font-bold text-lg">Kantin SPW</div>
         </NuxtLink>
       </div>
-      <UButton v-if="user" to="/dashboard" icon="i-heroicons-user-circle" variant="ghost" color="black" size="xl" :padded="false" />
-      <UButton v-else to="/login" color="white" :ui="{ rounded: 'rounded-full' }" class="px-10 py-2 font-bold">Login</UButton>
+      <div class="flex gap-3 items-end">
+        <slot />
+      </div>
     </header>
   </div>
 </template>
 
 <script setup>
-const user = useSupabaseUser()
+
 </script>
 
 <style scoped>

@@ -14,12 +14,12 @@
     "@nuxt/ui": "^2.18.7",
     "@nuxtjs/supabase": "^1.4.1",
     "chart.js": "^4.4.6",
-    "nuxt": "^3.13.2",
+    "nuxt": "^3.14.0",
     "vue": "latest",
     "vue-chartjs": "^5.3.2",
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
-    "@iconify-json/tabler": "^1.2.6"
+    "@iconify-json/tabler": "^1.2.7"
   }
 }

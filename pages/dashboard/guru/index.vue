@@ -102,8 +102,8 @@ const closeModal = () => {
   state.nama = ''
 }
 
-const openEditModal = (groupId) => {
-  selectedId.value = groupId
+const openEditModal = (teacherId) => {
+  selectedId.value = teacherId
   if (selectedItem.value) {
     state.nama = selectedItem.value.nama
 
@@ -184,10 +184,10 @@ const pageCount = 8
 
 const filteredRows = computed(() => {
   if (!searchQuery.value) {
-    return teachers.value.slice((page.value - 1) * pageCount, (page.value) * pageCount)
+    return teachers.value?.slice((page.value - 1) * pageCount, (page.value) * pageCount)
   }
 
-  const filtered = teachers.value.filter((teacher) => {
+  const filtered = teachers.value?.filter((teacher) => {
     return teacher.nama.toLowerCase().includes(searchQuery.value.toLowerCase().trim())
   })
 

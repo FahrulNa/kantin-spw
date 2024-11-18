@@ -6,12 +6,12 @@
     <div v-if="schedules" class="flex gap-5">
       <UCard v-for="schedule in schedules" :key="schedule.id" class="flex-1 text-center">
         <template #header>
-          <div>{{ schedule.nama }}</div>
+          <div class="text-2xl font-bold text-emerald-700">{{ schedule.nama }}</div>
         </template>
         <div class="grid grid-cols-2 grid-rows-2 gap-5 text-justify">
           <UCard v-for="day in schedule.hari" :key="day.id">
             <template #header>
-              <div class="text-center font-semibold">{{ day.nama }}</div>
+              <div class="text-center font-semibold text-gray-700">{{ day.nama }}</div>
             </template>
             <ol>
               <li v-for="teacher in day.guru">{{ teacher.nama }}</li>
@@ -25,7 +25,7 @@
     </div>
     <div>
 
-    <UModal v-model="isOpen" prevent-close>
+    <UModal v-model="isOpen">
       <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
         <template #header>
           <div class="flex items-center justify-between">
