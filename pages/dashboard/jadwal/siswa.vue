@@ -14,7 +14,7 @@
               <div class="text-center font-semibold">{{ schedule.nama }}</div>
             </template>
             <ol>
-              <li v-for="student in schedule.siswa"> {{ student.nama }} </li>
+              <li v-for="student in schedule.siswa" :key="student.id"> {{ student.nama }} </li>
             </ol>
             <template #footer>
               <UButton icon="heroicons:pencil-square-20-solid" color="yellow" label="Edit" variant="ghost" @click="isOpen = true"/>
@@ -55,7 +55,7 @@ const { data: schedules } = useAsyncData('schedules', async () => {
   try {
     const { data, error } = await supabase.from('hari').select(`
       id, nama,
-      siswa (
+      siswa!jadwal_siswa (
         id, nama
         )
       )
