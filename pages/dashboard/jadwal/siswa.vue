@@ -1,43 +1,35 @@
 <template>
-  <div class="flex flex-col flex-grow gap-y-24">
+  <div class="flex flex-col flex-grow gap-y-10 w-1/2">
     <UBreadcrumb divider="/"
       :links="[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Jadwal', to: '/dashboard/jadwal' }, { label: 'Jadwal Siswa', to: '/dashboard/jadwal/siswa' }]" />
 
-    <div v-if="schedules" class="flex gap-5 w-1/2 items-center ml-80">
-      <UCard class="flex-1 text-center">
-        <template #header>
-          <div> Piket </div>
-        </template>
-        <div class="grid grid-cols-2 grid-rows-2 gap-5 text-justify">
-          <UCard v-for="schedule in schedules" :key="schedule.id" >
-            <template #header>
-              <div class="text-center font-semibold">{{ schedule.nama }}</div>
-            </template>
-            <ol>
-              <li v-for="student in schedule.siswa" :key="student.id"> {{ student.nama }} </li>
-            </ol>
-            <template #footer>
-              <UButton icon="heroicons:pencil-square-20-solid" color="yellow" label="Edit" variant="ghost" @click="isOpen = true"/>
-            </template>
-          </UCard>
+      <UCard class="w-full ml-80">
+        <div>
+          <UInput type="date" class="w-fit" v-model="selectedDate"></UInput>
+          <div class="text-center font-semibold mb-2">Jadwal Piket</div>
         </div>
+          <UCarousel 
+          v-slot="{ item }" 
+          :items="items" 
+          :ui="{ item: 'basis-full' }" class="rounded-lg overflow-hidden"
+          :prev-button="{
+            color: 'gray',
+            icon: 'i-heroicons-arrow-left-20-solid',
+            class: '-start-12'
+          }"
+          :next-button="{
+            color: 'gray',
+            icon: 'i-heroicons-arrow-right-20-solid',
+            class: '-end-12'
+          }"
+          arrows>
+          <UCard class="p-4 w-full text-align-center">
+            <div class="font-bold text-lg">{{ item.title }}</div>
+            <div class="text-sm text-gray-600">{{ item.description }}</div>
+            <div class="mt-2 text-sm">Siswa: <span class="font-semibold">{{ item.siswa }}</span></div>
+          </UCard>
+          </UCarousel>
       </UCard>
-    </div>
-    <UModal v-model="isOpen" prevent-close>
-      <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="  font-semibold leading-6 text-gray-900 dark:text-white">
-              Edit Jadwal
-            </h3>
-            <div>
-
-            </div>
-            <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1" @click="isOpen = false" />
-          </div>
-        </template>
-      </UCard>
-    </UModal>
   </div>
 </template>
 
@@ -49,24 +41,37 @@ definePageMeta({
 
 const supabase = useSupabaseClient()
 
-const { data: schedules } = useAsyncData('schedules', async () => {
-  try {
-    const { data, error } = await supabase.from('hari').select(`
-      id, nama,
-      siswa!jadwal_siswa (
-        id, nama
-        )
-      )
-    `).order('id').range(0,3)
-    if (error) throw error
-    return data
-  } catch (error) {
-    console.error(error)
-    return
-  }
+const selectedDate = ref(null)
+const { data: schedules } = useAsyncData('monthlySchedules', async () => {
+  const { data, error } = await supabase.from('tanggal').select(`
+    id, tanggal,
+    siswa (
+      id, nama
+    )
+  `).eq('tanggal', selectedDate.value)
+  if (error) throw error
+  return data
 })
 
-const isOpen = ref(false)
+
+const items = ref([
+  { 
+    title: "Senin", 
+    description: "Piket kelas X IPA 1", 
+    siswa: "Ahmad, Budi, Siti"
+  },
+  { 
+    title: "Selasa", 
+    description: "Piket kelas X IPA 2", 
+    siswa: "Dina, Roni, Eka"
+  },
+  { 
+    title: "Rabu", 
+    description: "Piket kelas XI IPA 1", 
+    siswa: "Fahri, Lia, Tono"
+  }
+])
+
 </script>
 
 <style scoped></style>
