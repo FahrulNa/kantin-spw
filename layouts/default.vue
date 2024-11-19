@@ -45,8 +45,18 @@ const navbar = ref(false)
 
 const links = [
   {
+    label: 'Home',
+    to: '/',
+    click: () => navbar.value = false
+  },
+  {
     label: 'Katalog',
     to: '/produk',
+    click: () => navbar.value = false
+  },
+  {
+    label: 'Keranjang',
+    to: '/cart',
     click: () => navbar.value = false
   }
 ]

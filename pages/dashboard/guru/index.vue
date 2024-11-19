@@ -1,11 +1,16 @@
 <template>
-  <div class="flex flex-col gap-y-5">
+  <div class="flex flex-col flex-grow gap-y-5">
+    <UBreadcrumb divider="/"
+      :links="[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Kelola Guru', to: '/dashboard/guru' }]" />
+    
     <div class="flex justify-center">
       <UButton @click="navigateTo('/dashboard/guru/tambah')">Tambah Guru</UButton>
     </div>
+
     <div v-if="status == 'error'" class="text-red-500">
       {{ error.message }}
     </div>
+
     <div v-else class="flex flex-col gap-y-5 items-center">
       <div class="w-1/2">
         <UInput v-model="searchQuery" placeholder="Cari Nama..." class="w-full"
@@ -22,7 +27,7 @@
         </template>
       </UTable>
       <div class="flex justify-end px-3 py-3.5 border-t border-gray-200 dark:border-gray-700">
-        <UPagination v-model="page" :page-count="pageCount" :total="teachers.length" />
+        <UPagination v-model="page" :page-count="pageCount" :total="totalTeachers" />
       </div>
 
       <UModal v-model="editModal">
@@ -85,6 +90,7 @@ const { data: teachers, status, error, refresh } = useLazyAsyncData('teachers', 
     return
   }
 })
+const totalTeachers = computed(() => teachers.value.length)
 
 const editModal = ref(false)
 const selectedId = ref(null)
@@ -97,11 +103,6 @@ const selectedItem = computed(() => {
   return teachers.value.find(teacher => teacher.id === selectedId.value)
 })
 
-const closeModal = () => {
-  selectedId.value = null
-  state.nama = ''
-}
-
 const openEditModal = (teacherId) => {
   selectedId.value = teacherId
   if (selectedItem.value) {
@@ -111,7 +112,6 @@ const openEditModal = (teacherId) => {
   editModal.value = true
 }
 const closeEditModal = () => {
-  closeModal()
   editModal.value = false
 }
 
@@ -146,7 +146,6 @@ const openDeleteModal = (teacherId) => {
   deleteModal.value = true
 }
 const closeDeleteModal = () => {
-  closeModal()
   deleteModal.value = false
 }
 

@@ -41,7 +41,7 @@
                 variant="outline" :ui="{ rounded: 'rounded-full' }" @click="orderProduct(product.id, -1)" />
               <div>{{ product.order }}</div>
               <UButton class="active:bg-green-700 active:text-white transition" icon="i-heroicons-plus-20-solid"
-                variant="outline" :ui="{ rounded: 'rounded-full' }"
+                variant="outline" :ui="{ rounded: 'rounded-full' }" :disabled="product.order >= product.sisa"
                 @click="orderProduct(product.id, 1)" />
             </div>
           </div>

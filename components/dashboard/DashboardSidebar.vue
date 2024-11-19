@@ -54,8 +54,11 @@ const links = [
     {
       label: 'Jadwal',
       to: '/dashboard/jadwal'
-    }
-    
+    },
+    {
+      label: 'Transaksi',
+      to: '/dashboard/transaksi'
+    }    
   ],
   [
     {

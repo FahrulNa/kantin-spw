@@ -1,5 +1,7 @@
 <template>
-  <div class="flex flex-col items-center gap-y-5">
+  <div class="flex flex-col flex-grow gap-y-5">
+    <UBreadcrumb divider="/"
+      :links="[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Kelola Siswa', to: '/dashboard/siswa' }]" />
     <div class="flex justify-center">
       <UButton @click="navigateTo('/dashboard/siswa/tambah')">Tambah siswa</UButton>
     </div>
@@ -13,36 +15,38 @@
         {{ error.message }}
       </div>
     </div>
-    <div v-else class="flex flex-col gap-y-5 w-full xl:w-1/2 items-center">
-      <div class="w-full flex items-center gap-1.5">
-        <span class="text-sm leading-5">Students per page:</span>
-        <USelect v-model="pageCount" :options="[5, 10, 20, 30, 36]" size="xs" @change="resetPage" />
-      </div>
-      <div class="w-full flex justify-between gap-x-3">
-        <div class="flex-1">
-          <UInput v-model="searchQuery" placeholder="Cari Siswa..." icon="heroicons:magnifying-glass-20-solid"
-            @input="resetPage" />
+    <div v-else class="flex justify-center">
+      <div class="flex flex-col gap-y-5 w-full xl:w-1/2">
+        <div class="w-full flex items-center gap-1.5">
+          <span class="text-sm leading-5">Students per page:</span>
+          <USelect v-model="pageCount" :options="[5, 10, 20, 30, 36]" size="xs" @change="resetPage" />
         </div>
-        <div class="flex-1 flex items-center gap-1.5">
-          <span class="text-sm leading-5">Kelas:</span>
-          <USelectMenu v-model="selectedClass" :options="classes" option-attribute="nama" value-attribute="id" class="flex-grow" @change="resetPage" />
+        <div class="w-full flex justify-between gap-x-3">
+          <div class="flex-1">
+            <UInput v-model="searchQuery" placeholder="Cari Siswa..." icon="heroicons:magnifying-glass-20-solid"
+              @input="resetPage" />
+          </div>
+          <div class="flex-1 flex items-center gap-1.5">
+            <span class="text-sm leading-5">Kelas:</span>
+            <USelectMenu v-model="selectedClass" :options="classes" option-attribute="nama" value-attribute="id" class="flex-grow" @change="resetPage" />
+          </div>
+          <div class="flex-0 flex items-center">
+            <UButton icon="i-heroicons-x-mark" variant="link" color="red" size="xl" :padded="false" @click="() => selectedClass = null" />
+          </div>
         </div>
-        <div class="flex-0 flex items-center">
-          <UButton icon="i-heroicons-x-mark" variant="link" color="red" size="xl" :padded="false" @click="() => selectedClass = null" />
+        <UTable :rows="paginatedRows" :columns="columns" class="w-full border rounded-lg ">
+          <template #no-data="{ index }">
+            <div>{{ (page - 1) * pageCount + index + 1 }}</div>
+          </template>
+          <template #actions-data="{ row }">
+            <UButton icon="heroicons:pencil-square-20-solid" color="yellow" variant="ghost"
+              @click="openEditModal(row.id)" />
+            <UButton icon="heroicons:trash-20-solid" color="red" variant="ghost" @click="openDeleteModal(row.id)" />
+          </template>
+        </UTable>
+        <div class="flex w-full px-3 py-3.5 justify-end border-t border-gray-200 dark:border-gray-700">
+          <UPagination v-model="page" :page-count="pageCount" :total="filteredRows.length" />
         </div>
-      </div>
-      <UTable :rows="paginatedRows" :columns="columns" :loading="status == 'pending'" class="w-full border rounded-lg ">
-        <template #no-data="{ index }">
-          <div>{{ (page - 1) * pageCount + index + 1 }}</div>
-        </template>
-        <template #actions-data="{ row }">
-          <UButton icon="heroicons:pencil-square-20-solid" color="yellow" variant="ghost"
-            @click="openEditModal(row.id)" />
-          <UButton icon="heroicons:trash-20-solid" color="red" variant="ghost" @click="openDeleteModal(row.id)" />
-        </template>
-      </UTable>
-      <div class="flex w-full px-3 py-3.5 justify-end border-t border-gray-200 dark:border-gray-700">
-        <UPagination v-model="page" :page-count="pageCount" :total="filteredRows.length" />
       </div>
     </div>
 
@@ -112,7 +116,6 @@ const { data: classes } = await useAsyncData('classes', async () => {
 
 const { data: students, status, error, refresh } = await useAsyncData('students', async () => {
   try {
-    
     const { data, error } = await supabase.from('siswa').select(`
     id, nama,
     kelas (
@@ -219,13 +222,16 @@ const columns = [
   {
     key: 'nama',
     label: 'Nama'
-  }, {
+  },
+  {
     key: 'kelas.nama',
     label: 'Kelas'
-  }, {
+  },
+  {
     key: 'token_siswa.token',
     label: 'Token'
-  }, {
+  },
+  {
     key: 'actions',
     class: 'w-20'
   }

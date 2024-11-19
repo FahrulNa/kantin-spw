@@ -7,7 +7,7 @@
           <div class="font-bold text-lg">Kantin SPW</div>
         </NuxtLink>
       </div>
-      <div class="flex gap-3 items-end">
+      <div class="flex items-center gap-3">
         <slot />
       </div>
     </header>

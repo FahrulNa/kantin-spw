@@ -1,20 +1,23 @@
 <template>
-  <div class="flex flex-col min-h-full justify-center items-center">
-    <div class="w-fit relative border rounded-2xl">
-      <NuxtLink class="absolute top-3 left-3" to="/dashboard/kelompok">⬅️</NuxtLink>
-      <UForm class="p-10 space-y-4 flex flex-col" :validate="validate" :state="state" @submit="addKelompok">
-        <UFormGroup label="Nama Kelompok" name="nama">
-          <UInput v-model="state.nama" placeholder="contoh: Kelompok 1" />
-        </UFormGroup>
-        <UFormGroup label="Kelas" name="kelas">
-          <USelect :loading="!classes" :options="classes" option-attribute="nama" value-attribute="id"
-            v-model="state.kelas" />
-        </UFormGroup>
-        <UButton :loading="status == 'pending'" class="justify-center" type="submit">
-          Tambah
-        </UButton>
-        <div class="text-red-500" v-if="status == 'error'">{{ error.message }}</div>
-      </UForm>
+  <div class="flex flex-col flex-grow">
+    <UBreadcrumb divider="/"
+      :links="[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Kelola Produk', to: '/dashboard/produk' }, { label: 'Simpan Produk', to: '/dashboard/tambah' }]" />
+    <div class="w-auto flex flex-grow justify-center items-center">
+      <div class="w-fit relative border rounded-2xl">
+        <UForm class="p-10 space-y-4 flex flex-col" :validate="validate" :state="state" @submit="addKelompok">
+          <UFormGroup label="Nama Kelompok" name="nama">
+            <UInput v-model="state.nama" placeholder="contoh: Kelompok 1" />
+          </UFormGroup>
+          <UFormGroup label="Kelas" name="kelas">
+            <USelect :loading="!classes" :options="classes" option-attribute="nama" value-attribute="id"
+              v-model="state.kelas" />
+          </UFormGroup>
+          <UButton :loading="status == 'pending'" class="justify-center" type="submit">
+            Tambah
+          </UButton>
+          <div class="text-red-500" v-if="status == 'error'">{{ error.message }}</div>
+        </UForm>
+      </div>
     </div>
   </div>
 </template>

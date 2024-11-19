@@ -1,5 +1,8 @@
 <template>
   <div class="flex flex-col flex-grow gap-y-5">
+    <UBreadcrumb divider="/"
+      :links="[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Kelola Kelompok', to: '/dashboard/kelompok' }]" />
+
     <div class="flex justify-center">
       <UButton @click="navigateTo('/dashboard/kelompok/tambah')">Tambah Kelompok</UButton>
     </div>
