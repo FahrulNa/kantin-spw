@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-y-5">
+  <div class="flex flex-col flex-grow gap-y-5">
     <UBreadcrumb divider="/"
       :links="[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Kelola Produk', to: '/dashboard/produk' }]" />
 
