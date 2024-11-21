@@ -27,7 +27,7 @@
         </template>
       </UTable>
       <div class="flex justify-end px-3 py-3.5 border-t border-gray-200 dark:border-gray-700">
-        <UPagination v-model="page" :page-count="pageCount" :total="totalTeachers" />
+        <UPagination v-if="totalTeachers" v-model="page" :page-count="pageCount" :total="totalTeachers" />
       </div>
 
       <UModal v-model="editModal">
@@ -90,7 +90,7 @@ const { data: teachers, status, error, refresh } = useLazyAsyncData('teachers', 
     return
   }
 })
-const totalTeachers = computed(() => teachers.value.length)
+const totalTeachers = computed(() => teachers.value?.length)
 
 const editModal = ref(false)
 const selectedId = ref(null)

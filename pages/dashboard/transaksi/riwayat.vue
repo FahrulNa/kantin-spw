@@ -30,20 +30,27 @@ definePageMeta({
 })
 
 const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+
+const { data: userData } = await useAsyncData('userData', async () => {
+  const { data, error } = await supabase.from('users').select('nama, role').eq('id', user.value.id).maybeSingle()
+  if (error) throw error
+  return data
+})
 
 const { data: transactions, status, error } = useLazyAsyncData('transactions', async () => {
   const { data, error } = await supabase.from('transaksi').select(`
     id, created_at, jumlah,
-    produk (
+    produk!inner (
       id, nama,
-      kelompok (
+      kelompok!inner (
         id, nama,
-        kelas (
+        kelas!inner (
           id, nama
         )
       )
     )
-  `)
+  `).like('produk.kelompok.kelas.nama', `%${userData.value.nama.split(' ')[1]}%`)
   if (error) throw error
   return data
 })

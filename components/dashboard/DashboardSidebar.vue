@@ -56,9 +56,13 @@ const links = [
       to: '/dashboard/jadwal'
     },
     {
+      label: 'Pesanan',
+      to: '/dashboard/order'
+    },
+    {
       label: 'Transaksi',
       to: '/dashboard/transaksi'
-    }    
+    }
   ],
   [
     {

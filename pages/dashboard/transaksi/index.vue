@@ -17,7 +17,8 @@
         </template>
         <template #nama-data="{ row: { nama, fotoUrl } }">
           <div class="flex items-center gap-5">
-            <NuxtImg :src="fotoUrl" width="30" height="30" />
+            <NuxtImg v-if="fotoUrl" :src="fotoUrl" width="30" height="30" />
+            <NuxtImg v-else src="img/img-placeholder.png" width="30" height="30" />
             <div>{{ nama }}</div>
           </div>
         </template>
@@ -97,7 +98,7 @@ const { data: products, status, error, refresh } = useLazyAsyncData('products', 
           nama
         )
       )
-    `).eq('kelompok.kelas.nama', userData.value.nama).order('foto', { ascending: false })
+    `).like('kelompok.kelas.nama', `%${userData.value.nama.split(' ')[1]}%`).order('foto', { ascending: false })
     if (error) throw error
     if (data) {
       data = data.map(data => {
