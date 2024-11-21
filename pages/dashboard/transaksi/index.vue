@@ -83,6 +83,7 @@ const toast = useToast()
 const { data: userData } = await useAsyncData('userData', async () => {
   const { data, error } = await supabase.from('users').select('nama, role').eq('id', user.value.id).maybeSingle()
   if (error) throw error
+  console.log(data.nama.split(' ')[1])
   return data
 })
 
