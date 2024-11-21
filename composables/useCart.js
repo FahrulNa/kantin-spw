@@ -1,5 +1,5 @@
 export const useCart = () => {
-  const orders = useCookie('orders', { default: () => [], maxAge: 20 })
+  const orders = useCookie('orders', { default: () => [], maxAge: 43200 })
   const cart = useState('cart', () => [...orders.value])
 
   watch(cart, newCart => {

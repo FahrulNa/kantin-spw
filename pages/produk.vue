@@ -83,14 +83,14 @@ const borderClass = (kelas) => {
   }
 }
 
-const { data: products, status, error } = useLazyAsyncData('products', async () => {
+const { data: products, status, error, refresh } = useLazyAsyncData('products', async () => {
   try {
     let { data, error } = await supabase.from('produk').select(`
       *,
       kelompok (
         id, nama,
         kelas (
-          nama
+          id, nama
         )
       )
     `).order('foto')
@@ -113,6 +113,54 @@ const { data: products, status, error } = useLazyAsyncData('products', async () 
     return
   }
 })
+
+
+const channel = supabase.channel('product-changes')
+  .on(
+    'postgres_changes',
+    { event: '*', schema: 'public', table: 'produk' },
+    async (payload) => {
+      console.log('Change received!', payload.new)
+      switch (payload.eventType) {
+        case 'INSERT':
+          const { data: newProduct, error } = await supabase.from('produk').select(`
+            *,
+            kelompok (
+              id, nama,
+              kelas (
+                id, nama
+              )
+            )
+          `).eq('id', payload.new.id).maybeSingle()
+          if (error) throw error
+          console.log(newProduct)
+          products.value.push(newProduct)
+          console.log(products.value)
+          break
+        case 'UPDATE':
+          const product = products.value.find(product => product.id === payload.new.id)
+          if (product) {
+            const { data: newProduct, error } = await supabase.from('produk').select(`
+              *,
+              kelompok (
+                id, nama,
+                kelas (
+                  id, nama
+                )
+              )
+            `).eq('id', payload.new.id).maybeSingle()
+            if (error) throw error
+            Object.assign(product, newProduct)
+          }
+          break
+        case 'DELETE':
+          const index = products.value.findIndex(product => product.id === payload.old.id)
+          if (index !== -1) products.value.splice(index, 1)
+          break
+      }
+    }
+  )
+  .subscribe()
 
 const availableProducts = computed(() => products.value.filter(product => product.is_available))
 
@@ -142,6 +190,10 @@ const orderProduct = (productId, amount) => {
   if (newAmount === 0) removeFromCart(productId)
   else addToCart(productId, newAmount)
 }
+
+onUnmounted(() => {
+  channel?.unsubscribe()
+})
 </script>
 
 <style scoped></style>

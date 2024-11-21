@@ -105,7 +105,7 @@ const { execute: addProduct, status, error } = useAsyncData('addProduct', async 
     banyak: state.jumlah,
     sisa: state.jumlah,
     harga: state.harga,
-    foto: state.foto
+    foto: state.foto ?? null
   })
   if (error) throw error
   navigateTo('/dashboard/produk')

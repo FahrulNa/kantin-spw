@@ -276,7 +276,7 @@ const editProduct = async (productId) => {
       banyak: state.jumlah,
       sisa: state.jumlah,
       harga: state.harga,
-      foto: state.foto
+      foto: state.foto ?? null
     }).eq('id', productId)
     if (error) throw error
     closeEditModal()
