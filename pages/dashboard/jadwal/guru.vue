@@ -11,10 +11,10 @@
         <div class="grid grid-cols-2 grid-rows-2 gap-5 text-justify">
           <UCard v-for="day in schedule.hari" :key="day.id">
             <template #header>
-              <div class="text-center font-semibold text-gray-700">{{ day.nama }}</div>
+              <div class="text-center font-serif text-lg font-semibold">{{ day.nama }}</div>
             </template>
             <ol>
-              <li v-for="teacher in day.guru">{{ teacher.nama }}</li>
+              <li v-for="teacher in day.guru" class="list-disc list-outside">{{ teacher.nama }}</li>
             </ol>
             <template #footer>
               <UButton icon="heroicons:pencil-square-20-solid" color="yellow" variant="ghost" label="Edit" @click="isOpen = true"/>
@@ -31,15 +31,13 @@
           <div class="">
             <UButton icon="i-heroicons-x-mark" size="xl" :padded="false" color="black" square variant="ghost"
               class="float-end" @click="isOpen = false" />
-            <h3 class="text-center font-bold">Edit Guru</h3>
-            <div>
+            <h3 class="text-center font-bold">Edit Jadwal Guru</h3>
 
-            </div>
           </div>
         </template>
 
         <div>
-          
+
         </div>
 
       <template #footer>
@@ -79,6 +77,23 @@ const { data: schedules } = useAsyncData('schedules', async () => {
     return
   }
 })
+
+const editLoading = ref(false)
+const editJadwalGuru = async () => {
+  try {
+    editLoading.value = true
+    const { error } = await supabase.from('guru').update({
+      nama: state.nama,
+    }).eq('id')
+    if (error) throw error
+    closeEditModal()
+    refresh()
+  } catch (error) {
+    console.error(error)
+  } finally {
+    editLoading.value = false
+  }
+}
 
 const isOpen = ref(false)
 </script>
