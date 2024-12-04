@@ -4,7 +4,7 @@
       :links="[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Kelola Produk', to: '/dashboard/produk' }]" />
 
     <div class="flex justify-center">
-      <UButton @click="navigateTo('/dashboard/produk/tambah')">Simpan Produk</UButton>
+      <UButton @click="navigateTo('/dashboard/produk/tambah')">Tambah Produk</UButton>
     </div>
 
     <div v-if="status == 'pending' || status == 'error'">
@@ -23,11 +23,21 @@
             <NuxtImg v-if="product.fotoUrl" :src="product.fotoUrl" width="300" height="300" />
             <NuxtImg v-else src="img/img-placeholder.png" width="300" height="300" />
           </template>
-          <div class="text-center font-bold text-lg">{{ product.nama }}</div>
-          <div v-if="product.kelompok" class="text-center text-gray-500 text-sm">{{ product.kelompok.nama }} / {{
-            product.kelompok.kelas.nama }}</div>
-          <div class="text-sm">Jumlah Tersimpan: {{ product.banyak }}</div>
-          <div class="text-sm">Harga: Rp.{{ product.harga }}</div>
+          <div class="flex flex-col gap-y-4">
+            <div class="flex flex-col items-center">
+              <div class="font-bold text-lg">{{ product.nama }}</div>
+              <div v-if="product.kelompok" class="text-gray-500 text-sm">{{ product.kelompok.nama }} / {{
+                product.kelompok.kelas.nama }}</div>
+            </div>
+            <div class="flex flex-col text-sm">
+              <div>Jumlah Tersimpan: {{ product.banyak }}</div>
+              <div>Sisa Produk: {{ product.sisa }}</div>
+              <div>Harga: {{ rupiah(product.harga) }}</div>
+            </div>
+            <div class="flex justify-center">
+              <UButton variant="outline" color="lime" icon="i-heroicons-archive-box-arrow-down" label="Simpan" @click="openStoreModal(product.id)" />
+            </div>
+          </div>
           <template #footer>
             <UButton icon="i-heroicons-pencil-square-20-solid" size="sm" color="yellow" square variant="ghost"
               @click="openEditModal(product.id)" />
@@ -37,6 +47,30 @@
         </UCard>
       </div>
     </div>
+
+    <UModal v-model="storeModal">
+      <UCard>
+        <template #header>
+          <UButton icon="i-heroicons-x-mark" size="xl" :padded="false" color="black" square variant="ghost"
+            class="float-end" @click="closeStoreModal" />
+          <h3 class="text-center font-">Simpan Produk</h3>
+        </template>
+        <UForm class="px-10 space-y-4 flex flex-col" :validate="storeValidate" :state="storeState" @submit="storeProduct(selectedItem.id)">
+          <div v-if="selectedItem" class="flex flex-col text-sm font-light">
+            <div>Nama: {{ selectedItem.nama }}</div>
+            <div>Kelompok: {{ selectedItem.kelompok.nama }}</div>
+            <div>Kelas: {{ selectedItem.kelompok.kelas.nama }}</div>
+          </div>
+          <UFormGroup label="Jumlah yang ingin disimpan" name="banyak">
+            <UInput type="number" min="0" v-model="storeState.banyak" />
+          </UFormGroup>
+          <div class="flex justify-center">
+            <UButton :loading="storeLoading" class="w-fit px-12" color="lime" type="submit">Simpan</UButton>
+          </div>
+          <div v-if="storeError" class="text-red-500 text-center">{{ storeError }}</div>
+        </UForm>
+      </UCard>
+    </UModal>
 
     <UModal v-model="editModal">
       <UCard>
@@ -54,8 +88,11 @@
           <UFormGroup label="Nama Produk" name="nama">
             <UInput v-model="state.nama" />
           </UFormGroup>
-          <UFormGroup label="Jumlah Produk" name="jumlah">
-            <UInput type="number" size="sm" min="0" v-model="state.jumlah" />
+          <UFormGroup label="Jumlah Produk" name="banyak">
+            <UInput type="number" size="sm" min="0" v-model="state.banyak" />
+          </UFormGroup>
+          <UFormGroup label="Sisa Produk" name="sisa">
+            <UInput type="number" size="sm" min="0" :max="state.banyak" v-model="state.sisa" />
           </UFormGroup>
           <UFormGroup label="Harga Produk" name="harga">
             <UInput type="number" size="sm" min="0" step="500" v-model="state.harga">
@@ -87,11 +124,12 @@
         <template #header>
           <div class="font-semibold">Apakah Anda Yakin Ingin Menghapus Produk Ini?</div>
         </template>
-        <div v-if="selectedItem">
+        <div v-if="selectedItem" class="flex flex-col gap-y-2">
           <p>Nama Produk: {{ selectedItem.nama }}</p>
           <p v-if="selectedItem.kelompok">Kelompok: {{ selectedItem.kelompok.nama }} / {{
             selectedItem.kelompok.kelas.nama
           }}</p>
+          <UAlert icon="i-heroicons-exclamation-circle" color="red" variant="outline" title="Peringatan" description="Menghapus produk ini akan menghapus semua transaksi dan pemesanan yang berkaitan dengan produk ini." class="text-sm" />
         </div>
         <template #footer>
           <div class="flex gap-2">
@@ -139,7 +177,7 @@ const { data: groups } = await useAsyncData('groups', async () => {
 const { data: products, status, error, refresh } = useLazyAsyncData('products', async () => {
   try {
     let { data, error } = await supabase.from('produk').select(`
-      id, nama, banyak, harga, foto,
+      *,
       kelompok!inner (
         id, nama,
         kelas!inner (
@@ -173,7 +211,8 @@ const selectedItem = computed(() => {
 const state = reactive({
   kelompok: null,
   nama: '',
-  jumlah: 0,
+  banyak: 0,
+  sisa: 0,
   harga: 0,
   foto: '',
 })
@@ -185,7 +224,7 @@ const validate = (state) => {
   const errors = []
   if (!state.kelompok) errors.push({ path: 'kelompok', message: 'Required' })
   if (!state.nama) errors.push({ path: 'nama', message: 'Required' })
-  if (!state.jumlah) errors.push({ path: 'jumlah', message: 'Required' })
+  if (!state.banyak) errors.push({ path: 'banyak', message: 'Required' })
   if (!state.harga) errors.push({ path: 'harga', message: 'Required' })
   return errors
 }
@@ -224,10 +263,51 @@ const resetState = () => {
   selectedId.value = null
   state.kelompok = null
   state.nama = ''
-  state.jumlah = 0
+  state.banyak = 0
+  state.sisa = 0
   state.harga = 0
   state.foto = ''
   photoImage.value = null
+  storeState.banyak = 0
+}
+
+const storeState = reactive({
+  banyak: 0
+})
+const storeValidate = (state) => {
+  const errors = []
+  if (!state.banyak) errors.push({ path: 'banyak', message: 'Required' })
+  return errors
+}
+
+const storeModal = ref(false)
+const openStoreModal = (productId) => {
+  selectedId.value = productId
+  storeModal.value = true
+}
+const closeStoreModal = () => storeModal.value = false
+
+const storeLoading = ref(false)
+const storeError = ref('')
+const storeProduct = async (productId) => {
+  try {
+    storeLoading.value = true
+    const { error } = await supabase.from('produk').update({
+      banyak: storeState.banyak,
+      sisa: storeState.banyak
+    }).eq('id', productId)
+    if (error) throw error
+    closeStoreModal()
+    refresh()
+  } catch (error) {
+    console.error(error)
+    storeError.value = error.message
+    setTimeout(() => {
+      storeError.value = ''
+    }, 3000)
+  } finally {
+    storeLoading.value = false
+  }
 }
 
 const editModal = ref(false)
@@ -236,7 +316,8 @@ const openEditModal = (productId) => {
   if (selectedItem.value) {
     state.kelompok = selectedItem.value.kelompok?.id
     state.nama = selectedItem.value.nama
-    state.jumlah = selectedItem.value.banyak
+    state.banyak = selectedItem.value.banyak
+    state.sisa = selectedItem.value.sisa
     state.harga = selectedItem.value.harga
     state.foto = selectedItem.value.foto
     oldPhotoImageUrl.value = selectedItem.value.fotoUrl
@@ -273,8 +354,8 @@ const editProduct = async (productId) => {
     const { error } = await supabase.from('produk').update({
       kelompok: Number(state.kelompok),
       nama: state.nama,
-      banyak: state.jumlah,
-      sisa: state.jumlah,
+      banyak: state.banyak,
+      sisa: state.sisa,
       harga: state.harga,
       foto: state.foto ?? null
     }).eq('id', productId)
@@ -319,8 +400,10 @@ const deleteProduct = async (productId) => {
   }
 }
 
-watch([editModal, deleteModal], ([newEditModal, newDeleteModal], [oldEditModal, oldDeleteModal]) => {
-  if ((oldEditModal && !newEditModal) || (oldDeleteModal && !newDeleteModal)) resetState()
+watch([storeModal, editModal, deleteModal], ([newStoreModal, newEditModal, newDeleteModal], [oldStoreModal, oldEditModal, oldDeleteModal]) => {
+  if ((oldStoreModal && !newStoreModal) || (oldEditModal && !newEditModal) || (oldDeleteModal && !newDeleteModal)) {
+    setTimeout(() => resetState(), 250)
+  }
 })
 </script>
 

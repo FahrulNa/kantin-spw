@@ -120,7 +120,6 @@ const channel = supabase.channel('product-changes')
     'postgres_changes',
     { event: '*', schema: 'public', table: 'produk' },
     async (payload) => {
-      console.log('Change received!', payload.new)
       switch (payload.eventType) {
         case 'INSERT':
           const { data: newProduct, error } = await supabase.from('produk').select(`
@@ -133,9 +132,7 @@ const channel = supabase.channel('product-changes')
             )
           `).eq('id', payload.new.id).maybeSingle()
           if (error) throw error
-          console.log(newProduct)
           products.value.push(newProduct)
-          console.log(products.value)
           break
         case 'UPDATE':
           const product = products.value.find(product => product.id === payload.new.id)

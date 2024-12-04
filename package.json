@@ -11,15 +11,15 @@
   },
   "dependencies": {
     "@nuxt/image": "^1.8.1",
-    "@nuxt/ui": "^2.18.7",
-    "@nuxtjs/supabase": "^1.4.1",
-    "chart.js": "^4.4.6",
-    "nuxt": "^3.14.0",
+    "@nuxt/ui": "^2.19.2",
+    "@nuxtjs/supabase": "^1.4.3",
+    "chart.js": "^4.4.7",
+    "nuxt": "^3.14.1592",
     "vue": "latest",
     "vue-chartjs": "^5.3.2",
-    "vue-router": "^4.4.5"
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
-    "@iconify-json/tabler": "^1.2.7"
+    "@iconify-json/tabler": "^1.2.9"
   }
 }

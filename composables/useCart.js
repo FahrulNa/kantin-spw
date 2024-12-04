@@ -22,5 +22,9 @@ export const useCart = () => {
     cart.value = cart.value.filter(order => order.produk !== productId)
   }
 
-  return { cart, addToCart, removeFromCart }
+  const clearCart = () => {
+    cart.value = []
+  }
+
+  return { cart, addToCart, removeFromCart, clearCart }
 }

@@ -11,7 +11,7 @@
       {{ error.message }}
     </div>
     <div v-else>
-      <UTable :rows="products" :columns="columns" :loading="status == 'pending'">
+      <UTable :rows="products" :columns="columns" :loading="status === 'pending'">
         <template #no-data="{ index }">
           <div>{{ (page - 1) * pageCount + index + 1 }}</div>
         </template>
@@ -43,7 +43,7 @@
 
       <div class="flex justify-center">
         <UButton class="hover:scale-110 transition" icon="i-heroicons-pencil-solid" color="amber" label="Catat"
-          :disabled="!selectedProducts.length" @click="openRecordModal" />
+          :disabled="!selectedProducts?.length" @click="openRecordModal" />
       </div>
     </div>
 
@@ -53,18 +53,24 @@
           <h3 class="text-center font-bold">Catat Pembelian Produk Ini?</h3>
         </template>
         <div v-if="selectedProducts.length" class="px-3">
-          <ol class="list-disc">
-            <li v-for="product in selectedProducts" :key="product.id">{{ product.nama }} ({{ product.buyAmount }})</li>
-          </ol>
+            <div class="border-b border-black">
+              <div v-for="product in selectedProducts" :key="product.id" class="flex justify-between">
+                <div>{{ product.nama }} ({{ product.buyAmount }} x {{ product.harga }})</div>
+                <div>{{ rupiah(product.harga * product.buyAmount) }}</div>
+              </div>
+            </div>
+          <div class="flex justify-between items-center">Total: <span class="text-lg text-green-500">{{
+            rupiah(selectedProducts.reduce((total, { harga, buyAmount }) => total + harga * buyAmount, 0)) }}</span></div>
         </div>
         <template #footer>
           <div class="flex gap-2">
             <UButton color="gray" class="flex flex-grow items-center justify-center h-[38px]" @click="closeRecordModal">
               Cancel</UButton>
-            <UButton color="amber" :loading="recordLoading" class="flex flex-grow items-center justify-center h-[38px]"
-              @click="insertTransactionRecord">
+            <UButton color="amber" :loading="insertStatus === 'pending'"
+              class="flex flex-grow items-center justify-center h-[38px]" @click="insertTransactionRecord">
               Catat</UButton>
           </div>
+          <div class="flex justify-center text-red-500" v-if="insertError">{{ insertError.message }}</div>
         </template>
       </UCard>
     </UModal>
@@ -88,7 +94,7 @@ const { data: userData } = await useAsyncData('userData', async () => {
   return data
 })
 
-const { data: products, status, error, refresh } = useLazyAsyncData('products', async () => {
+const { data: products, status, error, refresh } = await useAsyncData('products', async () => {
   try {
     let { data, error } = await supabase.from('produk').select(`
       id, nama, banyak, sisa, harga, foto,
@@ -130,30 +136,24 @@ const openRecordModal = () => recordModal.value = true
 const closeRecordModal = () => recordModal.value = false
 
 const selectedProducts = computed(() => {
-  return products.value.filter(product => product.buyAmount > 0)
+  return products.value?.filter(product => product.buyAmount > 0)
 })
 
-const recordLoading = ref(false)
 const { execute: insertTransactionRecord, status: insertStatus, error: insertError } = useAsyncData('insertTransactionRecord', async () => {
-  try {
-    recordLoading.value = true
-    const products = selectedProducts.value.map(product => {
-      return {
-        produk: product.id,
-        jumlah: product.buyAmount
-      }
-    })
-    const { error } = await supabase.from('transaksi').insert(products)
-    if (error) throw error
-    closeRecordModal()
-    refresh()
-    toast.add({ title: 'Transaksi berhasil dilakukan', timeout: 2000 })
-  } catch (error) {
-    console.error(error)
+  const products = selectedProducts.value.map(product => {
+    return {
+      produk: product.id,
+      jumlah: product.buyAmount
+    }
+  })
+  const { error } = await supabase.from('transaksi').insert(products)
+  if (error) {
     toast.add({ title: 'Gagal melakukan transaksi', timeout: 2000 })
-  } finally {
-    recordLoading.value = false
+    throw error
   }
+  closeRecordModal()
+  refresh()
+  toast.add({ title: 'Transaksi berhasil dilakukan', timeout: 2000 })
 }, {
   immediate: false
 })

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-screen overflow-hidden">
+  <div class="flex flex-col h-screen overflow-x-hidden">
     <MainHeader @open-navbar="navbar = true">
       <ClientOnly>
         <CartPopover />
