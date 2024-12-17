@@ -20,7 +20,7 @@
         }" arrows>
         <UCard class="basis-full" :ui="{rounded: 'rounded-none', ring: 'ring-0', shadow: 'shadow-none' }">
           <div class="flex flex-col items-center">
-            <div class="font-bold text-lg">{{ item.title }}</div>
+            <div class="font-bold text-lg">{{ item.day }}</div>
             <div class="text-sm text-gray-600">{{ item.description }}</div>
             <div class="mt-2 text-sm">Siswa: <span class="font-semibold">{{ item.siswa }}</span></div>
           </div>
@@ -54,17 +54,17 @@ const { data: schedules } = useAsyncData('monthlySchedules', async () => {
 
 const items = ref([
   {
-    title: "Senin",
+    day: "Senin",
     description: "Piket kelas X IPA 1",
     siswa: "Ahmad, Budi, Siti"
   },
   {
-    title: "Selasa",
+    day: "Selasa",
     description: "Piket kelas X IPA 2",
     siswa: "Dina, Roni, Eka"
   },
   {
-    title: "Rabu",
+    day: "Rabu",
     description: "Piket kelas XI IPA 1",
     siswa: "Fahri, Lia, Tono"
   }
@@ -72,4 +72,6 @@ const items = ref([
 
 </script>
 
-<style scoped></style>
+<style scoped>
+
+</style>
