@@ -5,36 +5,30 @@
     <!-- Cards Section -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
       <!-- Card 1: Pendapatan Minggu Ini -->
-      <UCard>
         <div class="bg-teal-700 text-white shadow-md p-6 rounded-lg">
           <h2 class="text-xl font-semibold">Pendapatan Minggu Ini</h2>
           <p class="mt-2 text-2xl">Rp.500.0000</p>
         </div>
-      </UCard>
       
       <!-- Card 2: Riwayat Absensi -->
-      <UCard>
         <div class="bg-teal-700 text-white shadow-md p-6 rounded-lg">
           <h2 class="text-center text-xl font-semibold">Riwayat Absensi</h2>
           <p class="text-center mt-6 text-2xl">20 </p>
         </div>
-    </UCard>
       
       <!-- Card 3: Jumlah Produk Terjual -->
-      <UCard>
+
         <div class="bg-teal-700 text-white shadow-md p-6 rounded-lg">
           <h2 class="text-xl font-semibold">Jumlah Produk Terjual</h2>
           <p class="mt-2 text-2xl">120</p>
         </div>
-      </UCard>
 
       <!-- Card 4: Pendapatan Hari Ini -->
-      <UCard>
+
         <div class="bg-teal-700 text-white shadow-md p-6 rounded-lg">
           <h2 class="text-xl font-semibold">Pendapatan Hari Ini</h2>
           <p class="mt-2 text-2xl">Rp. 100.000</p>
         </div>
-      </UCard>
     </div>
 
     <!-- Chart Section -->
