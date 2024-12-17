@@ -215,28 +215,34 @@ const openOrderModal = () => orderModal.value = true
 const closeOrderModal = () => orderModal.value = false
 
 const { execute: insertOrder, status, error } = useAsyncData('insertOrder', async () => {
-  const { data: order, error: orderError } = await supabase.from('pemesanan').insert({
-    metode: selectedOrderMethod.value,
-    lokasi: selectedOrderMethod.value === 'Delivery' ? selectedDeliveryLocation.value : null
-  }).select().maybeSingle()
-  if (orderError) {
-    toast.add({ title: 'Terjadi kesalahan', description: orderError.message, timeout: 2000 })
-    throw orderError
-  }
-  const productOrders = orderedProducts.value.map((product) => {
-    return {
+  try {
+    const { data: order, error: orderError } = await supabase.from('pemesanan').insert({
+      metode: selectedOrderMethod.value,
+      lokasi: selectedOrderMethod.value === 'Delivery' ? selectedDeliveryLocation.value : null
+    }).select().maybeSingle()
+    if (orderError) throw orderError
+    const productOrders = orderedProducts.value.map((product) => {
+      return {
+        id_pemesanan: order.id,
+        id_produk: product.id,
+        jumlah: product.jumlah
+      }
+    })
+    const { error: productError } = await supabase.from('pemesanan_produk').insert(productOrders)
+    if (productError) throw productError
+    const { error: statusError } = await supabase.from('status_pemesanan').insert({
       id_pemesanan: order.id,
-      id_produk: product.id,
-      jumlah: product.jumlah
-    }
-  })
-  const { error } = await supabase.from('pemesanan_produk').insert(productOrders)
-  if (error) {
+      id_status: 1,
+      waktu: new Date().toLocaleTimeString()
+    })
+    if (statusError) throw statusError
+    closeOrderModal()
+    clearCart()
+    toast.add({ title: 'Pemesanan berhasil dilakukan', timeout: 2000 })
+    navigateTo('/order')
+  } catch (error) {
     toast.add({ title: 'Terjadi kesalahan', description: error.message, timeout: 2000 })
-    throw error
   }
-  clearCart()
-  toast.add({ title: 'Pemesanan berhasil dilakukan', timeout: 2000 })
 }, {
   immediate: false
 })

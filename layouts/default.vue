@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-screen overflow-x-hidden">
+  <div class="flex flex-col h-screen overflow-x-hidden overflow-y-scroll">
     <MainHeader @open-navbar="navbar = true">
       <ClientOnly>
         <CartPopover />
@@ -57,6 +57,11 @@ const links = [
   {
     label: 'Keranjang',
     to: '/cart',
+    click: () => navbar.value = false
+  },
+  {
+    label: 'Pesanan Saya',
+    to: '/order',
     click: () => navbar.value = false
   }
 ]
